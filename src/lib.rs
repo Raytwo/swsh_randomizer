@@ -39,8 +39,6 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
 
     original!()(unk, pokemon);
 
-    hex_dump_ptr(&pokemon.ability);
-
     println!(
         "Species: {}, HP: {}, SPE: {}, SPA: {}, SPD: {}, Gender: {}, Nature: {}, Ability: {}",
         pokemon.species_id,
