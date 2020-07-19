@@ -1,0 +1,25 @@
+[package]
+name = "randomizer"
+version = "0.1.0"
+authors = ["Raytwo <raytwost@gmail.com>"]
+edition = "2018"
+
+[package.metadata.skyline]
+titleid = "01008DB008C2C000"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+skyline = { git = "https://github.com/ultimate-research/skyline-rs.git" }
+rand = "0.7.3"
+
+[patch.crates-io]
+getrandom = { git = "https://github.com/Raytwo/getrandom" }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+lto = true
