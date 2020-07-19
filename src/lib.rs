@@ -7,6 +7,7 @@ use skyline::{hook, install_hooks};
 //mod bt;
 mod resource;
 use resource::PersonalData;
+use skyline::logging::hex_dump_ptr;
 
 #[repr(C)]
 pub struct WildPokemon {
@@ -15,7 +16,7 @@ pub struct WildPokemon {
     unk2: [u16; 0x2],
     gender: u16,
     nature: u16,
-    ability: u16,
+    ability: u8,
 }
 
 #[hook(offset = 0x7709f0)]
@@ -37,6 +38,8 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
     let spd = personal_data.get(pokemon.species_id).unwrap().spdef;
 
     original!()(unk, pokemon);
+
+    hex_dump_ptr(&pokemon.ability);
 
     println!(
         "Species: {}, HP: {}, SPE: {}, SPA: {}, SPD: {}, Gender: {}, Nature: {}, Ability: {}",
