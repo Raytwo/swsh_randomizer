@@ -1,6 +1,5 @@
 use skyline::hooks::{getRegionAddress, Region};
-use std::fmt;
-use std::sync::atomic::AtomicU32;
+//use std::fmt;
 
 fn offset_to_addr(offset: usize) -> *const () {
     unsafe { (getRegionAddress(Region::Text) as *const u8).offset(offset as isize) as _ }

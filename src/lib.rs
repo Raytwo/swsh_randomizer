@@ -2,12 +2,11 @@
 #![feature(asm)]
 
 use rand::prelude::*;
-use skyline::logging::hex_dump_ptr;
 use skyline::nn;
 use skyline::{hook, install_hooks};
-mod bt;
+//mod bt;
 mod resource;
-use resource::*;
+use resource::PersonalData;
 
 #[repr(C)]
 pub struct WildPokemon {
