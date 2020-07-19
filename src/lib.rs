@@ -9,8 +9,6 @@ mod bt;
 mod resource;
 use resource::*;
 
-static INVALID_SPECIES: &'static [i16] = &[1, 2, 3];
-
 #[repr(C)]
 pub struct WildPokemon {
     unk: [u8; 0x27],
@@ -40,6 +38,7 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
     let spd = personal_data.get(pokemon.species_id).unwrap().spd;
 
     original!()(unk, pokemon);
+
     println!(
         "Species: {}, HP: {}, SPE: {}, SPA: {}, SPD: {}, Gender: {}, Nature: {}, Ability: {}",
         pokemon.species_id,
