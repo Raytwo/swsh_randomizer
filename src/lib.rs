@@ -32,9 +32,9 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
         if hp != 0 { break; }
     }
 
-    let spe = personal_data.get(pokemon.species_id).unwrap().spe;
-    let spa = personal_data.get(pokemon.species_id).unwrap().spa;
-    let spd = personal_data.get(pokemon.species_id).unwrap().spd;
+    let spe = personal_data.get(pokemon.species_id).unwrap().speed;
+    let spa = personal_data.get(pokemon.species_id).unwrap().spatk;
+    let spd = personal_data.get(pokemon.species_id).unwrap().spdef;
 
     original!()(unk, pokemon);
 
