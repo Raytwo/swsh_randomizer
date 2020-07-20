@@ -14,7 +14,11 @@ pub struct WildPokemon {
     unk: [u8; 0x27],
     species_id: u32,
     form_id: u16,
+<<<<<<< Updated upstream
     unk2: u16,
+=======
+    unk2: [u16; 0x1],
+>>>>>>> Stashed changes
     gender: u16,
     nature: u16,
     ability: u8,
@@ -44,6 +48,7 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
     let spa = personal_data.get(pokemon.species_id).unwrap().spatk;
     let spd = personal_data.get(pokemon.species_id).unwrap().spdef;
     let gender = personal_data.get(pokemon.species_id).unwrap().gender;
+    let form_count: u16 = personal_data.get(pokemon.species_id).unwrap().form_count.into();
 
     if gender == 0xFF {
         pokemon.gender = 2;
@@ -55,6 +60,10 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
         } else {
             pokemon.gender = rand::thread_rng().gen_range(0, 1);
         }
+    }
+
+    if (form_count - 1) > 0 {
+        pokemon.form_id = rand::thread_rng().gen_range(0, (form_count - 1));
     }
 
     pokemon.ability = rand::thread_rng().gen_range(0, 2);
