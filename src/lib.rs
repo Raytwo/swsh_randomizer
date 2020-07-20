@@ -14,11 +14,7 @@ pub struct WildPokemon {
     unk: [u8; 0x27],
     species_id: u32,
     form_id: u16,
-<<<<<<< Updated upstream
-    unk2: u16,
-=======
     unk2: [u16; 0x1],
->>>>>>> Stashed changes
     gender: u16,
     nature: u16,
     ability: u8,
