@@ -37,6 +37,8 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
     let spa = personal_data.get(pokemon.species_id).unwrap().spatk;
     let spd = personal_data.get(pokemon.species_id).unwrap().spdef;
 
+    pokemon.ability = rand::thread_rng().gen_range(0, 2);
+    
     original!()(unk, pokemon);
 
     println!(
