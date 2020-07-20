@@ -36,6 +36,19 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
     let spe = personal_data.get(pokemon.species_id).unwrap().speed;
     let spa = personal_data.get(pokemon.species_id).unwrap().spatk;
     let spd = personal_data.get(pokemon.species_id).unwrap().spdef;
+    let gender = personal_data.get(pokemon.species_id).unwrap().gender;
+
+    if gender == 0xFF {
+        pokemon.gender = 2;
+    } else {
+        if gender == 0 {
+            pokemon.gender = 0;
+        } else if gender == 0xFE {
+            pokemon.gender = 1;
+        } else {
+            pokemon.gender = rand::thread_rng().gen_range(0, 1);
+        }
+    }
 
     original!()(unk, pokemon);
 
@@ -46,7 +59,7 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
         spe,
         spa,
         spd,
-        pokemon.gender,
+        gender,
         pokemon.nature,
         pokemon.ability
     );
