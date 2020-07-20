@@ -2,49 +2,31 @@
 #![feature(asm)]
 
 use rand::prelude::*;
-use skyline::nn;
-use skyline::{hook, install_hooks};
-//mod bt;
+use skyline::{hook, install_hooks, nn};
 mod resource;
-use resource::PersonalData;
-use std::fmt;
+use resource::{PersonalData, WildPokemon};
 
-#[repr(C)]
-pub struct WildPokemon {
-    unk: [u8; 0x27],
-    species_id: u32,
-    form_id: u16,
-    unk2: [u16; 0x1],
-    gender: u16,
-    nature: u16,
-    ability: u8,
-}
-
-impl fmt::Display for WildPokemon {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[Pokemon #{}] Form: {}, Gender: {}, Nature {}, Ability: {}", self.species_id, self.form_id, self.gender, self.nature, self.ability)
-    }
-}
+const SPECIES_COUNT: u16 = 894;
 
 #[hook(offset = 0x7709f0)]
 pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
     let pokemon = &mut *wild_pokemon;
     let personal_data = PersonalData::get_instance();
-    let mut hp: u8;
-    
-    
-    loop {
-        pokemon.species_id = rand::thread_rng().gen_range(0, 893);
-        hp = personal_data.get(pokemon.species_id).unwrap().hp;
+    let mut rng = rand::thread_rng();
 
-        if hp != 0 { break; }
+    loop {
+        pokemon.species_id = rng.gen_range(0, SPECIES_COUNT as u32);
+        let mut hp = personal_data.get(pokemon.species_id).unwrap().hp;
+
+        if hp != 0 {
+            break;
+        }
     }
 
-    let spe = personal_data.get(pokemon.species_id).unwrap().speed;
-    let spa = personal_data.get(pokemon.species_id).unwrap().spatk;
-    let spd = personal_data.get(pokemon.species_id).unwrap().spdef;
-    let gender = personal_data.get(pokemon.species_id).unwrap().gender;
-    let form_count: u16 = personal_data.get(pokemon.species_id).unwrap().form_count.into();
+    let species_id = pokemon.species_id;
+
+    let gender = personal_data.get(species_id).unwrap().gender;
+    let form_count = personal_data.get(species_id).unwrap().form_count as u16;
 
     if gender == 0xFF {
         pokemon.gender = 2;
@@ -54,27 +36,19 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
         } else if gender == 0xFE {
             pokemon.gender = 1;
         } else {
-            pokemon.gender = rand::thread_rng().gen_range(0, 1);
+            pokemon.gender = rng.gen_range(0, 2);
         }
     }
 
-    if (form_count - 1) > 0 {
-        pokemon.form_id = rand::thread_rng().gen_range(0, (form_count - 1));
+    if form_count > 1 {
+        pokemon.form_id = rng.gen_range(0, form_count);
     }
 
-    pokemon.ability = rand::thread_rng().gen_range(0, 2);
-    
+    pokemon.ability = rng.gen_range(0, 3);
+
     original!()(unk, pokemon);
 
     println!("{}", pokemon);
-    println!(
-        "HP: {}, SPE: {}, SPA: {}, SPD: {}, Gender: {}",
-        hp,
-        spe,
-        spa,
-        spd,
-        gender,
-    );
 }
 
 #[hook(offset = 0x18d1750)]
@@ -98,6 +72,11 @@ pub fn kill_ldn_initialize() {
     return;
 }
 
+#[hook(offset = 0x18d18c0)]
+pub fn kill_ldn_finalize() {
+    return;
+}
+
 #[skyline::main(name = "randomizer")]
 pub fn main() {
     println!(
@@ -109,6 +88,7 @@ pub fn main() {
         kill_socket_initialize_config,
         kill_socket_finalize,
         kill_ldn_initialize,
+        kill_ldn_finalize,
         wild_initialize,
     );
 }

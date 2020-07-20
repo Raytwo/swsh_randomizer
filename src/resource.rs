@@ -1,19 +1,33 @@
 use skyline::hooks::{getRegionAddress, Region};
-//use std::fmt;
+use std::fmt;
 
 fn offset_to_addr(offset: usize) -> *const () {
     unsafe { (getRegionAddress(Region::Text) as *const u8).offset(offset as isize) as _ }
 }
 
 #[repr(C)]
-pub struct CppVector<T> {
-    start: *const T,
-    end: *const T,
-    eos: *const T,
+pub struct WildPokemon {
+    unk: [u8; 0x27],
+    pub species_id: u32,
+    pub form_id: u16,
+    unk2: [u16; 0x1],
+    pub gender: u16,
+    pub nature: u16,
+    pub ability: u8,
+}
+
+impl fmt::Display for WildPokemon {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "[Pokemon #{}] Form: {}, Gender: {}, Nature {}, Ability: {}",
+            self.species_id, self.form_id, self.gender, self.nature, self.ability
+        )
+    }
 }
 
 #[repr(C)]
-pub struct PersonalDataInstance { 
+pub struct PersonalDataInstance {
     pub vtable: *const (),
     pub species_id: u32,
     pub form_id: u16,
@@ -77,50 +91,19 @@ impl PersonalData {
     }
 
     pub fn get(&mut self, species_id: u32) -> Result<&PersonalData, PersonalDataError> {
-        self.table().get(species_id as usize).ok_or(PersonalDataError::SpeciesIdOutOfBounds)
+        self.table()
+            .get(species_id as usize)
+            .ok_or(PersonalDataError::SpeciesIdOutOfBounds)
     }
 
     pub fn get_mut(&mut self, species_id: u32) -> Result<&mut PersonalData, PersonalDataError> {
-        self.table_mut().get_mut(species_id as usize).ok_or(PersonalDataError::SpeciesIdOutOfBounds)
+        self.table_mut()
+            .get_mut(species_id as usize)
+            .ok_or(PersonalDataError::SpeciesIdOutOfBounds)
     }
 }
 
 #[derive(Copy, Clone, Debug)]
 pub enum PersonalDataError {
-    SpeciesIdOutOfBounds
+    SpeciesIdOutOfBounds,
 }
-
-// Could serve as future reference on how to do things, do not remove yet
-
-
-// #[repr(packed)]
-// #[derive(Copy, Clone)]
-// pub struct HashIndexGroup {
-//     pub hash40: Hash40,
-//     pub flags: [u8; 3],
-// }
-
-// impl fmt::Debug for HashIndexGroup {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "0x{:x}", self.hash40.as_u64())
-//     }
-// }
-
-// #[repr(packed)]
-// #[derive(Copy, Clone)]
-// pub struct Hash40 {
-//     crc32: u32,
-//     len: u8,
-// }
-
-// impl fmt::Debug for Hash40 {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         write!(f, "0x{:x}", self.as_u64())
-//     }
-// }
-
-// impl Hash40 {
-//     pub fn as_u64(&self) -> u64 {
-//         (self.crc32 as u64) + ((self.len as u64) << 32)
-//     }
-// }
