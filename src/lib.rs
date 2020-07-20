@@ -7,16 +7,23 @@ use skyline::{hook, install_hooks};
 //mod bt;
 mod resource;
 use resource::PersonalData;
-use skyline::logging::hex_dump_ptr;
+use std::fmt;
 
 #[repr(C)]
 pub struct WildPokemon {
     unk: [u8; 0x27],
     species_id: u32,
-    unk2: [u16; 0x2],
+    form_id: u16,
+    unk2: u16,
     gender: u16,
     nature: u16,
     ability: u8,
+}
+
+impl fmt::Display for WildPokemon {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[Pokemon #{}] Form: {}, Gender: {}, Nature {}, Ability: {}", self.species_id, self.form_id, self.gender, self.nature, self.ability)
+    }
 }
 
 #[hook(offset = 0x7709f0)]
@@ -54,16 +61,14 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
     
     original!()(unk, pokemon);
 
+    println!("{}", pokemon);
     println!(
-        "Species: {}, HP: {}, SPE: {}, SPA: {}, SPD: {}, Gender: {}, Nature: {}, Ability: {}",
-        pokemon.species_id,
+        "HP: {}, SPE: {}, SPA: {}, SPD: {}, Gender: {}",
         hp,
         spe,
         spa,
         spd,
         gender,
-        pokemon.nature,
-        pokemon.ability
     );
 }
 
