@@ -50,6 +50,8 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
         }
     }
 
+    pokemon.ability = rand::thread_rng().gen_range(0, 2);
+    
     original!()(unk, pokemon);
 
     println!(
