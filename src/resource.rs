@@ -1,4 +1,6 @@
 use skyline::hooks::{getRegionAddress, Region};
+use skyline::libc::{c_void};
+use skyline::from_offset;
 use std::fmt;
 
 fn offset_to_addr(offset: usize) -> *const () {
@@ -24,6 +26,73 @@ impl fmt::Display for WildPokemon {
             self.species_id, self.form_id, self.gender, self.nature, self.ability
         )
     }
+}
+
+#[from_offset(0x7711b0)]
+pub fn calculate_checksum(dest: *const c_void, size: usize) -> u16;
+
+#[from_offset(0x7711b0)]
+pub fn calculate_hash(dest: *const c_void, size: usize) -> u16;
+
+#[from_offset(0x771250)]
+pub fn idk(dest: *const c_void, size: usize, encryption_constant: u32) -> u16;
+
+#[repr(C)]
+pub struct Pk8Instance {
+    pub vtable: *const (),
+    pub unk: u64,
+    pub pk8: *mut Pk8,
+    unk2: [bool; 0x2],
+}
+
+impl Pk8Instance {
+    pub unsafe fn get(&self) -> &Pk8 {
+        &*self.pk8
+    }
+
+    pub unsafe fn get_mut(&self) -> &mut Pk8 {
+        &mut *self.pk8
+    }
+}
+
+#[repr(C)]
+pub struct Pk8 {
+    pub encryption_const: u32,
+    pub sanity: u16,
+    pub checksum: u16,
+    pub species_id: u16,
+    pub held_item: i16,
+    pub tid: u16,
+    pub sid: u16,
+    pub exp: u32,
+    pub ability: u16,
+    unk: u16,
+    pub mark_value: u16,
+    unk2: u16,
+    pub pid: u32,
+    pub nature: u8,
+    pub minted_nature: u8,
+    pub gender: u8,
+    unk3: u8,
+    pub form_id: u16,
+    pub evs: [u8;6],
+    cnt_smth: [u8;6],
+    pub pokerus: u8,
+    unk4: [u8;29],
+    pub height_scalar: u8,
+    pub weight_scalar: u8,
+    unk5: [u8;32],
+    pub moves: [u16;4],
+    pub moves_pp: [u8;4],
+    pub moves_pp_plus: [u8;4],
+    pub relearn_moves: [u16;4],
+    pub current_hp: u16,
+    pub iv32: u32,
+    pub dynamax_level: u8,
+    unk6: [u8;55],
+    pub ht_friendship: u8,
+    unk7: [u8;73],
+    pub ot_friendship: u8,
 }
 
 #[repr(C)]

@@ -4,15 +4,16 @@
 use rand::prelude::*;
 use skyline::{hook, install_hooks, nn};
 mod resource;
-use resource::{PersonalData, WildPokemon};
+use resource::{PersonalData, WildPokemon, Pk8, calculate_checksum, idk, calculate_hash};
 
 const SPECIES_COUNT: u16 = 893;
 
 #[hook(offset = 0x7709f0)]
-pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
+pub unsafe fn wild_initialize(pk8: *mut Pk8, wild_pokemon: *mut WildPokemon) {
     let pokemon = &mut *wild_pokemon;
     let personal_data = PersonalData::get_instance();
     let mut rng = rand::thread_rng();
+    let pk8_temp = &mut *pk8;
 
     loop {
         pokemon.species_id = rng.gen_range(0, SPECIES_COUNT as u32);
@@ -40,10 +41,20 @@ pub unsafe fn wild_initialize(unk: u64, wild_pokemon: *mut WildPokemon) {
     }
 
     pokemon.ability = rng.gen_range(0, 3);
+    original!()(pk8, pokemon);
 
-    original!()(unk, pokemon);
+    //pk8_temp.species_id = 150;
+    // calculate_hash((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140);
+    // let chksm = calculate_checksum((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140);
 
-    println!("{}", pokemon);
+    // if pk8_temp.checksum != chksm {
+    //     pk8_temp.sanity = pk8_temp.sanity | 4;
+    // }
+
+    //pk8_temp.checksum = calculate_checksum((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140);
+
+    //idk((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140, pk8_temp.encryption_const);
+    println!("{}, Pk8 PID: {}", pokemon, pk8_temp.pid);
 }
 
 #[hook(replace = nn::socket::Initialize_Config)]
