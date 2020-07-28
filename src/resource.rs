@@ -1,7 +1,12 @@
+use std::{fmt, slice};
+use std::io::{Cursor, Seek, SeekFrom};
+
+use byteorder::{ LittleEndian, BigEndian, ReadBytesExt };
+
 use skyline::hooks::{getRegionAddress, Region};
 use skyline::libc::{c_void};
 use skyline::from_offset;
-use std::fmt;
+use skyline::logging::hex_dump_ptr;
 
 fn offset_to_addr(offset: usize) -> *const () {
     unsafe { (getRegionAddress(Region::Text) as *const u8).offset(offset as isize) as _ }
@@ -29,10 +34,7 @@ impl fmt::Display for WildPokemon {
 }
 
 #[from_offset(0x7711b0)]
-pub fn calculate_checksum(dest: *const c_void, size: usize) -> u16;
-
-#[from_offset(0x7711b0)]
-pub fn calculate_hash(dest: *const c_void, size: usize) -> u16;
+pub fn calculate_checksum(dest: *const u8, size: usize) -> u64;
 
 #[from_offset(0x771250)]
 pub fn idk(dest: *const c_void, size: usize, encryption_constant: u32) -> u16;
@@ -93,7 +95,45 @@ pub struct Pk8 {
     pub ht_friendship: u8,
     unk7: [u8;73],
     pub ot_friendship: u8,
+    unk8: [u8;52],
 }
+
+impl Pk8 {
+    pub unsafe fn refresh_checksum(&mut self)
+    {
+        println!("Valid checksum: {:#x}", self.checksum);
+
+        let mut pk8_slice = as_bytes(self);
+        let mut pk8 = Cursor::new(pk8_slice);
+        pk8.seek(SeekFrom::Start(8));
+
+        let mut chksm: u16 = 0;
+
+        for i in (0..320).step_by(2) {
+            chksm = chksm.wrapping_add(pk8.read_u16::<LittleEndian>().unwrap());
+            println!("Chksm iter {}: {:#x}", i, chksm);
+        }
+
+        self.checksum = chksm;
+
+
+        println!("New checksum: {:#x}", chksm);
+    }
+}
+
+fn as_bytes<T: Sized>(x: &T) -> &[u8] {
+    unsafe {
+        core::slice::from_raw_parts((x as *const T) as *const u8, core::mem::size_of::<T>())
+    }
+}
+
+// protected override ushort CalculateChecksum()
+// {
+//     ushort chk = 0;
+//     for (int i = 8; i < 328; i += 2)
+//         chk += BitConverter.ToUInt16(Data, i);
+//     return chk;
+// }
 
 #[repr(C)]
 pub struct PersonalDataInstance {

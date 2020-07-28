@@ -3,8 +3,9 @@
 
 use rand::prelude::*;
 use skyline::{hook, install_hooks, nn};
+use skyline::logging::hex_dump_ptr;
 mod resource;
-use resource::{PersonalData, WildPokemon, Pk8, calculate_checksum, idk, calculate_hash};
+use resource::{PersonalData, WildPokemon, Pk8, calculate_checksum, idk};
 
 const SPECIES_COUNT: u16 = 893;
 
@@ -43,7 +44,9 @@ pub unsafe fn wild_initialize(pk8: *mut Pk8, wild_pokemon: *mut WildPokemon) {
     pokemon.ability = rng.gen_range(0, 3);
     original!()(pk8, pokemon);
 
+    
     //pk8_temp.species_id = 150;
+    pk8_temp.refresh_checksum();
     // calculate_hash((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140);
     // let chksm = calculate_checksum((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140);
 
