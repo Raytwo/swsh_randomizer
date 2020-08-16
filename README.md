@@ -20,6 +20,7 @@ Pokemon Sword and Shield randomizer plugin for Nintendo Switch.
 
 ## Notes
 
+- Species, Form, Gender (still respects gender legality) and Ability are the parameters being randomized. More to come, eventually.
 - Please do note that trainer pokemons still have their original movesets for the time being, as we are encountering problems with the checksum.
 - Local and online communication is cut off when using the plugin, mostly as a safety measure for now. We might change that at some point.
 
