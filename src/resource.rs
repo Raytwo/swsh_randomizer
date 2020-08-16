@@ -1,5 +1,8 @@
 use std::{fmt, slice};
 use std::io::{Cursor, Seek, SeekFrom};
+use std::slice::Chunks;
+use std::fs;
+use std::io::prelude::*;
 
 use byteorder::{ LittleEndian, BigEndian, ReadBytesExt };
 
@@ -37,7 +40,7 @@ impl fmt::Display for WildPokemon {
 pub fn calculate_checksum(dest: *const u8, size: usize) -> u64;
 
 #[from_offset(0x771250)]
-pub fn idk(dest: *const c_void, size: usize, encryption_constant: u32) -> u16;
+pub fn idk(dest: *const c_void, size: usize, encryption_constant: u32);
 
 #[repr(C)]
 pub struct Pk8Instance {
@@ -104,19 +107,18 @@ impl Pk8 {
         println!("Valid checksum: {:#x}", self.checksum);
 
         let mut pk8_slice = as_bytes(self);
-        let mut pk8 = Cursor::new(pk8_slice);
-        pk8.seek(SeekFrom::Start(8));
+        let mut chksm: u64 = 0;
 
-        let mut chksm: u16 = 0;
-
-        for i in (0..320).step_by(2) {
-            chksm = chksm.wrapping_add(pk8.read_u16::<LittleEndian>().unwrap());
-            println!("Chksm iter {}: {:#x}", i, chksm);
+        for i in as_u16_iter(&pk8_slice[8..]) {
+            chksm = (chksm as u32).wrapping_add(i as u32) as u64;
         }
 
-        self.checksum = chksm;
 
+        let test = &pk8_slice[pk8_slice.len() - 4..];
+        println!("Print that out: {:#?}", test);
 
+        //self.checksum = chksm;
+        
         println!("New checksum: {:#x}", chksm);
     }
 }
@@ -125,6 +127,10 @@ fn as_bytes<T: Sized>(x: &T) -> &[u8] {
     unsafe {
         core::slice::from_raw_parts((x as *const T) as *const u8, core::mem::size_of::<T>())
     }
+}
+
+fn as_u16_iter<'a>(slice: &'a [u8]) -> impl Iterator<Item = u16> + 'a {
+    slice.chunks_exact(2).map(|x| u16::from_le_bytes([x[0], x[1]]))
 }
 
 // protected override ushort CalculateChecksum()
