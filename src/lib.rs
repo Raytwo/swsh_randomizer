@@ -1,23 +1,30 @@
 #![feature(proc_macro_hygiene)]
 #![feature(asm)]
 
+use pokecrypto::encrypt_array8;
 use rand::prelude::*;
 use skyline::{hook, install_hooks, nn};
 use skyline::logging::hex_dump_ptr;
 mod resource;
-use resource::{PersonalData, WildPokemon, Pk8, calculate_checksum, idk};
+use resource::{PersonalData, WildPokemon, Accessor};
+
+use pkhexcore::pkm::{PKM, util::pokecrypto::SIZE_8PARTY};
+use pkhexcore::{game::enums::species::Species, pkm::pk8::PK8};
+use pkhexcore::pkm::util::pokecrypto;
+
+use skyline::hooks::{getRegionAddress, Region};
 
 const SPECIES_COUNT: u16 = 893;
+use skyline::from_offset;
 
 #[hook(offset = 0x7709f0)]
-pub unsafe fn wild_initialize(pk8: *mut Pk8, wild_pokemon: *mut WildPokemon) {
+pub unsafe fn wild_initialize(pk8: *mut u8, wild_pokemon: *mut WildPokemon) {
     let pokemon = &mut *wild_pokemon;
     let personal_data = PersonalData::get_instance();
     let mut rng = rand::thread_rng();
-    let pk8_temp = &mut *pk8;
 
     loop {
-        pokemon.species_id = rng.gen_range(0, SPECIES_COUNT as u32);
+        pokemon.species_id = rng.gen_range(0..SPECIES_COUNT as u32);
         let mut hp = personal_data.get(pokemon.species_id).unwrap().hp;
 
         if hp != 0 {
@@ -34,30 +41,28 @@ pub unsafe fn wild_initialize(pk8: *mut Pk8, wild_pokemon: *mut WildPokemon) {
         0 => 0, // Male only
         0xFE => 1,// Female only
         0xFF => 2, // Genderless
-        _ => rng.gen_range(0, 2)
+        _ => rng.gen_range(0..2)
     };
 
     if form_count > 1 {
-        pokemon.form_id = rng.gen_range(0, form_count);
+        pokemon.form_id = rng.gen_range(0..form_count);
     }
 
-    pokemon.ability = rng.gen_range(0, 3);
+    pokemon.ability = rng.gen_range(0..3);
     original!()(pk8, pokemon);
+}
 
-    
-    //pk8_temp.species_id = 150;
-    pk8_temp.refresh_checksum();
-    // calculate_hash((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140);
-    // let chksm = calculate_checksum((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140);
-
-    // if pk8_temp.checksum != chksm {
-    //     pk8_temp.sanity = pk8_temp.sanity | 4;
-    // }
-
-    //pk8_temp.checksum = calculate_checksum((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140);
-
-    //idk((pk8 as *const u8).offset(8) as *const skyline::libc::c_void, 0x140, pk8_temp.encryption_const);
-    println!("{}, Pk8 PID: {}", pokemon, pk8_temp.pid);
+#[hook(offset = 0x779360)]
+pub unsafe fn set_species_id(accessor: &mut Accessor, species_id: u32) {
+    original!()(accessor, species_id);
+    let base = std::slice::from_raw_parts_mut(accessor.core_data, SIZE_8PARTY);
+    let mut raw = base.to_vec();
+    let mut pk8 = PK8::from(&raw);
+    pk8.species = Species::Mew;
+    let raw_pk8 = pk8.build();
+    let mut pk8_bytes = raw_pk8.to_bytes();
+    encrypt_array8(&mut pk8_bytes);
+    base.copy_from_slice(pk8_bytes.as_slice());
 }
 
 #[hook(replace = nn::socket::Initialize_Config)]
@@ -98,6 +103,7 @@ pub fn main() {
         kill_socket_finalize,
         kill_ldn_initialize,
         kill_ldn_finalize,
-        wild_initialize,
+        //wild_initialize,
+        set_species_id,
     );
 }
