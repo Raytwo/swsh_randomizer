@@ -14,14 +14,18 @@ Pokemon Sword and Shield randomizer plugin for Nintendo Switch.
 
 ## Usage
 
+* Make sure you already have a save file created before installing this
+* Install plugin
 * Just run into any trainer or wild encounter
 * ???
 * Profit!
 
 ## Notes
 
+- Species, Form, Gender (still respects gender legality) and Ability are the parameters being randomized. More to come, eventually.
 - Please do note that trainer pokemons still have their original movesets for the time being, as we are encountering problems with the checksum.
 - Local and online communication is cut off when using the plugin, mostly as a safety measure for now. We might change that at some point.
+- Some bugs are to be expected for now.
 
 ## Credits
 * [jam1garner](https://github.com/jam1garner) - [cargo-skyline](https://github.com/jam1garner/cargo-skyline), [skyline-rs](https://github.com/ultimate-research/skyline-rs), [skyline-rs-template](https://github.com/ultimate-research/skyline-rs-template)
